@@ -16,13 +16,15 @@ def sort_dict(d):
 
 class Apriori:
     def __init__(self, file_path, min_support, min_confidence):
-        self.min_support = min_support # 最小支持度
-        self.min_confidence = min_confidence # 最小置信度
+        self.min_support = min_support # min support
+        self.min_confidence = min_confidence # min confidence
         self.data = load_data(file_path)
         self.num = len(self.data)
         self.frequency_list = None
         self.rules = None
 
+    # first pass: count support for individual items and
+    # return items which have min support
     def large_1_items(self):
         items = dict()
         for row in self.data:
@@ -43,6 +45,7 @@ class Apriori:
 
     def generate_c(self, l):
         c = set()
+        to_remove = set()
         for p, q in combinations(l, 2):
             if p[:-2] == q[:-2]:
                 c.add(p + (q[-1],))
@@ -50,7 +53,9 @@ class Apriori:
             k = len(candidate_set)
             for subset in combinations(candidate_set, k - 1):
                 if subset not in l:
-                    c.remove(candidate_set)
+                    to_remove.add(candidate_set)
+        for item in to_remove:
+            c.remove(item)
         return c
 
     def apriori(self):
@@ -77,7 +82,7 @@ class Apriori:
                         self.rules[x + (items[i],)] = (confidence, sup)
 
     def output_rule(self):
-        with open("./output.txt", 'w') as f:
+        with open("./sample_run.txt", 'w') as f:
             f.write("==Frequent itemsets (min_sup=%s" % (self.min_support * 100) + "%)\n")
             for item_set in self.frequency_list:
                 for items in item_set:
@@ -92,15 +97,12 @@ class Apriori:
 
 
 if __name__ == '__main__':
-    # if len(sys.argv) != 7:
-    #    print("main <data path> <minimum support> <minimum confidence>")
-    #    exit(1)
-    # f = sys.argv[1]
-    # s = float(sys.argv[2])
-    # c = float(sys.argv[3])
-    f = "./test.csv"
-    s = 0.7
-    c = 0.8
+    if len(sys.argv) != 4:
+        print("main <data path> <minimum support> <minimum confidence>")
+        exit(1)
+    f = sys.argv[1]
+    s = float(sys.argv[2])
+    c = float(sys.argv[3])
 
     a = Apriori(f, s, c)
     a.apriori()
